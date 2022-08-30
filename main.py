@@ -1,7 +1,7 @@
 import FunctionFile
 
 if __name__ == '__main__':
-    wait = 32
+    wait = 0
     while True:
         # Send emails
         if FunctionFile.CheckTime(FunctionFile.getTime()):
