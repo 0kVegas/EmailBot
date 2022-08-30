@@ -1,3 +1,7 @@
+"""
+Functions File for sending emails
+"""
+
 # ----Imports----
 from random import randrange
 from email.message import EmailMessage
@@ -9,7 +13,7 @@ import ssl
 # ----Functions----
 # ---Time---
 def getDate():
-    return date.today()  # Today's date
+    return date.today()  # Today's date (YYYY-MM-DD)
 
 
 def getTime():
@@ -38,16 +42,22 @@ def Pause():  # Pause before sending the next email
 
 
 # ---Text Files---
-def OpenList():  # Get emails
-    EmailList = open('EmailTextFile.txt', 'r')
+def OpenList(email):  # Get emails
+    EmailList = open(email, 'r')
     text = EmailList.readline()
     EmailList.close()
     List = text.split(' ')
     return List  # List of all emails
 
 
+def AddEmails(email):  # Add email to EmailTextFile.txt
+    EmailList = open('EmailTextFile.txt', 'a')
+    EmailList.write(email)
+    EmailList.close()
+
+
 def Receiver():  # Get email from email list
-    return OpenList()[0]  # Oldest email on the list
+    return OpenList('EmailTextFile.txt')[0]  # Oldest email on the list
 
 
 def AppendItem():  # Append email, time and date to SentTo.txt
@@ -58,7 +68,7 @@ def AppendItem():  # Append email, time and date to SentTo.txt
     text = [Receiver(), time, Date]
     text = ' '.join(text)
     Emails.write(text)
-    Emails.write('\n')
+    Emails.write('\n')  # email@domainName.com Hour:Minute:Second YYYY-MM-DD
     Emails.close()
 
 
@@ -68,7 +78,15 @@ def PopItem(Emails):  # Deletes email from EmailTextFile.txt
     EmailList = open('EmailTextFile.txt', 'w')
     EmailList.write(Emails)
     EmailList.close()
-    return OpenList()
+    return OpenList('EmailTextFile.txt')
+
+
+def uploadEmails():  # Upload all emails in EmailsToAdd.txt to EmailTextFile.txt
+    emails = OpenList('EmailsToAdd.txt')
+    for i in range(len(emails)):
+        AddEmails(emails[i])
+        print(f"Uploaded: {emails[i]}")
+    print('Finished uploads')
 
 
 # ----Classes----
@@ -102,4 +120,4 @@ class Email:
 
 
 if __name__ == '__main__':
-    pass
+    print(getDate())
