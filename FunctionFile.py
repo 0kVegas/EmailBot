@@ -8,6 +8,8 @@ from email.message import EmailMessage
 from datetime import datetime, date
 import smtplib
 import ssl
+import sqlite3
+import pathlib
 
 
 # ----Functions----
@@ -24,7 +26,7 @@ def getTime():
 
 
 def CheckTime(time):  # Get time parameters
-    if 20 > int(time[0]) > 9:
+    if 17 > int(time[0]) > 8:
         return True
     return False
 
@@ -60,16 +62,11 @@ def Receiver():  # Get email from email list
     return OpenList('EmailTextFile.txt')[0]  # Oldest email on the list
 
 
-def AppendItem():  # Append email, time and date to SentTo.txt
-    Emails = open('SentTo.txt', 'a')
+def emailSetUp():  # Setup information to be sent to database
     time = getTime()
     time = ':'.join(time)
     Date = str(getDate())
-    text = [Receiver(), time, Date]
-    text = ' '.join(text)
-    Emails.write(text)
-    Emails.write('\n')  # email@domainName.com Hour:Minute:Second YYYY-MM-DD
-    Emails.close()
+    return [Receiver(), time, Date]
 
 
 def PopItem(Emails):  # Deletes email from EmailTextFile.txt
@@ -90,6 +87,7 @@ def uploadEmails():  # Upload all emails in EmailsToAdd.txt to EmailTextFile.txt
 
 
 # ----Classes----
+# ---Email---
 class Email:
     def __init__(self, emailReceiver):
         # Message
@@ -117,6 +115,58 @@ class Email:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=self.context) as smtp:
             smtp.login(self.emailSender, self.emailPassword)
             smtp.sendmail(self.emailSender, self.emailReceiver, self.em.as_string())
+
+
+class Database:
+    def __init__(self, fileName):
+        self.fileName = fileName
+        self.connection = sqlite3.connect(self.fileName)
+        self.cursor = self.connection.cursor()
+
+    def Setup(self):
+        print('here')
+        self.cursor.execute("""
+        CREATE TABLE Emails(
+            id INTEGER PRIMARY KEY,
+            email TEXT NOT NULL,
+            time TEXT NOT NULL,
+            date TEXT NOT NULL
+            )
+        ;""")
+        self.connection.commit()
+
+    def AddInfo(self, info):
+        self.cursor.execute("""
+        INSERT INTO
+            Emails(
+                email,
+                time,
+                date
+            )
+        VALUES(
+            ?,?,?
+        )
+        ;""", info)
+        self.connection.commit()
+
+    def SearchGeneral(self):
+        print(self.cursor.execute("""
+        SELECT
+            *
+        FROM
+            Emails
+        """).fetchall())
+
+    def SearchDate(self, Date):
+        print(self.cursor.execute("""
+        SELECT
+            *
+        FROM
+            Emails
+        WHERE
+            date = ?
+        ;""", Date).fetchall())
+
 
 
 if __name__ == '__main__':
